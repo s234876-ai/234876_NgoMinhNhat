@@ -4,16 +4,24 @@ const mongoose = require('mongoose');
 const Book = require('./models/Book');
 
 const app = express();
+function normalizeOrigin(value) {
+  try {
+    return new URL(value.includes('://') ? value : `https://${value}`).origin;
+  } catch {
+    return '';
+  }
+}
+
 const allowedOrigins = (process.env.CLIENT_URL || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin.trim()))
   .filter(Boolean);
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '32kb' }));
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
+    if (!origin || process.env.NODE_ENV !== 'production' || allowedOrigins.includes(normalizeOrigin(origin))) {
       callback(null, true);
       return;
     }
