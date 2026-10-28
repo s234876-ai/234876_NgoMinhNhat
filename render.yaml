@@ -15,15 +15,20 @@ services:
       - key: MONGODB_URI
         sync: false
       - key: CLIENT_URL
-        sync: false
+        fromService:
+          type: web
+          name: 234876-books-frontend
+          property: host
 
   - type: web
     name: 234876-books-frontend
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        sync: false
+        fromService:
+          type: web
+          name: 234876-books-api
+          property: host
