@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 
-const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+const configuredApiUrl = import.meta.env.VITE_API_URL || ''
+const apiBase = configuredApiUrl
+  ? `${/^https?:\/\//i.test(configuredApiUrl) ? '' : 'https://'}${configuredApiUrl}`.replace(/\/$/, '')
+  : ''
 const blankBook = {
   title: '',
   author: '',
