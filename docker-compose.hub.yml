@@ -1,0 +1,12 @@
+services:
+  backend:
+    image: nhat290305/234876-ngominhnhat-backend:latest
+    build:
+      context: ./backend
+
+  frontend:
+    image: nhat290305/234876-ngominhnhat-frontend:latest
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:?Set VITE_API_URL to the deployed backend URL}

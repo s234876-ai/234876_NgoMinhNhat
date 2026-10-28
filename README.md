@@ -1,0 +1,114 @@
+# 234876_NgoMinhNhat — Quản lý thư viện sách trên nền tảng đám mây
+
+Ứng dụng React + Express + MongoDB quản lý sách; mã nguồn chia thành `backend/` và `frontend/`.
+
+Repository: https://github.com/s234876-ai/234876_NgoMinhNhat
+
+## Chức năng
+
+- Tạo, xem danh sách, xem chi tiết, cập nhật và xóa sách.
+- Tìm kiếm không phân biệt hoa thường theo tên sách, tác giả, thể loại, nhà xuất bản và ISBN.
+- Kiểm tra dữ liệu bắt buộc, số lượng, năm xuất bản và ISBN duy nhất.
+- Giao diện React có trạng thái tải, lỗi, danh sách rỗng, biểu mẫu thêm/sửa và xác nhận xóa.
+- `/health` hiển thị trạng thái API và kết nối cơ sở dữ liệu.
+- Docker Compose chạy toàn bộ ứng dụng cục bộ; có Dockerfile riêng cho backend và frontend.
+
+## Cấu trúc dữ liệu
+
+MongoDB database: `234876_NgoMinhNhat` · collection: `books`.
+
+| Trường | Kiểu | Ràng buộc |
+|---|---|---|
+| `title` | chuỗi | bắt buộc |
+| `author` | chuỗi | bắt buộc |
+| `category` | chuỗi | bắt buộc |
+| `publisher` | chuỗi | bắt buộc |
+| `publishYear` | số | bắt buộc, không âm |
+| `isbn` | chuỗi | bắt buộc, duy nhất |
+| `quantity` | số nguyên | bắt buộc, không âm |
+| `description` | chuỗi | tùy chọn |
+
+## API
+
+| Phương thức | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/books` | Lấy danh sách |
+| `GET` | `/api/books/:id` | Xem chi tiết |
+| `POST` | `/api/books` | Thêm sách |
+| `PUT` | `/api/books/:id` | Cập nhật sách |
+| `DELETE` | `/api/books/:id` | Xóa sách |
+| `GET` | `/api/books?search=cloud` | Tìm theo tên, tác giả, thể loại, nhà xuất bản hoặc ISBN |
+| `GET` | `/health` | Kiểm tra dịch vụ |
+
+Ví dụ payload:
+
+```json
+{
+  "title": "Nhà giả kim",
+  "author": "Paulo Coelho",
+  "category": "Tiểu thuyết",
+  "publisher": "NXB Văn học",
+  "publishYear": 2020,
+  "isbn": "9786043074546",
+  "quantity": 5,
+  "description": "Hành trình theo đuổi ước mơ."
+}
+```
+
+## Chạy cục bộ với Docker
+
+Cài Docker Desktop, sau đó chạy tại thư mục này:
+
+```powershell
+docker compose up --build
+```
+
+Mở giao diện tại `http://localhost:8080`, API tại `http://localhost:5000` và trạng thái tại `http://localhost:5000/health`. Compose tạo MongoDB cục bộ để chạy thử không cần thông tin Atlas. Dữ liệu được lưu trong volume `mongo-data`.
+
+Để kết nối Atlas, tạo database user và cấu hình IP access list phù hợp. Đặt URI qua biến môi trường, không ghi URI hoặc mật khẩu vào mã nguồn hay Git:
+
+```powershell
+$env:MONGODB_URI = "mongodb+srv://<user>:<password>@<cluster>/?retryWrites=true&w=majority"
+docker compose up --build
+```
+
+Để thêm tối thiểu ba bản ghi mẫu vào Atlas hoặc MongoDB local, cấu hình `backend/.env` với `MONGODB_URI`, sau đó chạy `cd backend; npm ci; npm run seed`. Lệnh seed theo ISBN và chỉ thêm bản ghi còn thiếu, không ghi đè các bản ghi đã tồn tại.
+
+## Chạy từng dịch vụ phát triển
+
+1. Cài Node.js 22 trở lên và khởi động MongoDB local, hoặc chuẩn bị URI Atlas.
+2. Tạo `backend/.env` từ `backend/.env.example`, cập nhật URI riêng.
+3. Terminal 1: `cd backend; npm install; npm run dev`.
+4. Terminal 2: `cd frontend; npm install; npm run dev`.
+5. Mở `http://localhost:5173`. Vite proxy `/api` và `/health` đến backend cổng 5000.
+6. Thêm ba sách mẫu bằng `cd backend; npm run seed`.
+
+## Deploy lên Render
+
+1. Tạo Web Service từ repository, Root Directory `backend`, Build Command `npm install`, Start Command `npm start`, Health Check Path `/health`.
+2. Thêm `MONGODB_URI` trong Render Dashboard với URI Atlas; có thể đặt `MONGODB_DB=234876_NgoMinhNhat`. Không đưa URI vào repo.
+3. Tạo Static Site khác từ cùng repo, Root Directory `frontend`, Build Command `npm install && npm run build`, Publish Directory `dist`.
+4. Đặt biến build `VITE_API_URL` bằng URL HTTPS backend, không kèm dấu `/` cuối.
+5. Cập nhật `CLIENT_URL` ở backend thành URL HTTPS Static Site rồi deploy lại.
+6. Kiểm tra `/health`, CRUD, tìm kiếm và kết quả từ trình duyệt.
+
+## Docker Hub
+
+Đặt `VITE_API_URL` bằng URL backend đã deploy (không có dấu `/` cuối), đăng nhập đúng account Docker Hub `nhat290305` trong Docker Desktop/CLI và chạy tại thư mục này. Không lưu access token trong repository:
+
+```powershell
+$env:VITE_API_URL = "https://<api-render-url>"
+docker compose -f docker-compose.hub.yml build
+docker compose -f docker-compose.hub.yml push
+```
+
+Thay `<api-render-url>` bằng URL backend thực tế; image backend và frontend lần lượt được gắn tag `nhat290305/234876-ngominhnhat-backend:latest` và `nhat290305/234876-ngominhnhat-frontend:latest`.
+
+## Tài nguyên cần điền khi nộp
+
+- GitHub: URL repository sau khi push.
+- MongoDB Atlas: database `234876_NgoMinhNhat`, collection `books` và URL/ảnh xác nhận cấu hình (không công khai credentials).
+- Docker Hub: URL image sau khi push thành công.
+- Render: URL frontend và backend đã deploy.
+
+Các dịch vụ cloud cần quyền đăng nhập riêng của chủ tài khoản; không ghi URL dịch vụ chưa được tạo hoặc giả lập credentials.
