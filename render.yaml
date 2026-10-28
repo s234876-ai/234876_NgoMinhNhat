@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: 234876-books-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_DB
+        value: 234876_NgoMinhNhat
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+
+  - type: web
+    name: 234876-books-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
