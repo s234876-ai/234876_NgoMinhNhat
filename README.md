@@ -90,7 +90,7 @@ docker compose up --build
 Repository có `render.yaml` để tạo Web Service API và Static Site frontend cùng lúc:
 
 1. Trong Render Dashboard, tạo **Blueprint Instance** từ `s234876-ai/234876_NgoMinhNhat` và chọn nhánh `main`.
-2. Khi Render yêu cầu biến chưa đồng bộ, nhập `MONGODB_URI` bằng connection string Atlas; đặt `CLIENT_URL` là URL HTTPS của Static Site và `VITE_API_URL` là URL HTTPS của API (không có dấu `/` cuối). Nếu chưa biết URL trước lúc tạo, có thể tạo hai dịch vụ trước rồi điền hai giá trị này trong Environment của từng dịch vụ và deploy lại. URL host không có `https://` cũng được chấp nhận và tự chuẩn hóa.
+2. Khi Render yêu cầu biến bí mật chưa đồng bộ, nhập `MONGODB_URI` bằng connection string Atlas. Blueprint tự liên kết `CLIENT_URL` với host Static Site và `VITE_API_URL` với host API; ứng dụng tự chuẩn hóa host sang HTTPS.
 3. API dùng Root Directory `backend`, build `npm ci`, start `npm start` và health check `/health`. Frontend dùng Root Directory `frontend`, build `npm ci && npm run build`, publish `dist`.
 4. Đặt `MONGODB_DB=234876_NgoMinhNhat`; URI Atlas phải được giữ trong Environment của Render, không đưa vào repo. Trong Atlas, thêm IP access phù hợp để Render truy cập.
 5. Mở API `/health`, sau đó frontend; thử thêm, tìm kiếm, cập nhật và xóa sách. CORS chỉ cho phép origin khai báo trong `CLIENT_URL`.
