@@ -99,25 +99,23 @@ Nếu cấu hình thủ công thay vì Blueprint, dùng cùng các Root Director
 
 ## Docker Hub
 
-Đặt `VITE_API_URL` bằng URL backend đã deploy (không có dấu `/` cuối), đăng nhập đúng account Docker Hub `nhat290305` trong Docker Desktop/CLI và chạy tại thư mục này. Không lưu access token trong repository:
+`docker-compose.hub.yml` bổ sung tên image/tag cho Compose local. Để build và chạy thử image trên Docker Desktop, dùng URL API local:
+
+```powershell
+$env:VITE_API_URL = "http://localhost:5000"
+docker compose -f docker-compose.yml -f docker-compose.hub.yml up --build
+```
+
+Kiểm tra `http://localhost:8080` và `http://localhost:5000/health`, sau đó dừng bằng `Ctrl+C`. Để đóng gói và push, đặt `VITE_API_URL` bằng URL HTTPS API đã deploy (không có dấu `/` cuối), đăng nhập account Docker Hub `nhat290305` trong Docker Desktop/CLI và chạy:
 
 ```powershell
 $env:VITE_API_URL = "https://<api-render-url>"
-docker compose -f docker-compose.hub.yml build
-docker compose -f docker-compose.hub.yml push
-```
-
-Thay `<api-render-url>` bằng URL backend thực tế; image backend và frontend lần lượt được gắn tag `nhat290305/234876-ngominhnhat-backend:latest` và `nhat290305/234876-ngominhnhat-frontend:latest`.
-
-Sau khi Docker Desktop đang chạy, build, chạy thử và đẩy image:
-
-```powershell
-docker compose -f docker-compose.hub.yml build
+docker compose -f docker-compose.yml -f docker-compose.hub.yml build
 docker login -u nhat290305
-docker compose -f docker-compose.hub.yml push
+docker compose -f docker-compose.yml -f docker-compose.hub.yml push
 ```
 
-Docker CLI sẽ yêu cầu đăng nhập tương tác; không truyền access token trực tiếp trên dòng lệnh. Image frontend cần được build lại nếu URL API thay đổi.
+Image backend và frontend lần lượt được gắn tag `nhat290305/234876-ngominhnhat-backend:latest` và `nhat290305/234876-ngominhnhat-frontend:latest`. Docker CLI sẽ yêu cầu đăng nhập tương tác; không truyền access token trực tiếp trên dòng lệnh. Image frontend cần được build lại nếu URL API thay đổi.
 
 ## Tài nguyên cần điền khi nộp
 
