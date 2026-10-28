@@ -63,6 +63,8 @@ Cài Docker Desktop, sau đó chạy tại thư mục này:
 docker compose up --build
 ```
 
+Compose chờ MongoDB và API healthy trước khi khởi chạy dịch vụ phụ thuộc. Kiểm tra trạng thái tại `/health`; trạng thái container có thể xem bằng `docker compose ps`.
+
 Mở giao diện tại `http://localhost:8080`, API tại `http://localhost:5000` và trạng thái tại `http://localhost:5000/health`. Compose tạo MongoDB cục bộ để chạy thử không cần thông tin Atlas. Dữ liệu được lưu trong volume `mongo-data`.
 
 Để kết nối Atlas, tạo database user và cấu hình IP access list phù hợp. Đặt URI qua biến môi trường, không ghi URI hoặc mật khẩu vào mã nguồn hay Git:
@@ -85,12 +87,15 @@ docker compose up --build
 
 ## Deploy lên Render
 
-1. Tạo Web Service từ repository, Root Directory `backend`, Build Command `npm install`, Start Command `npm start`, Health Check Path `/health`.
-2. Thêm `MONGODB_URI` trong Render Dashboard với URI Atlas; có thể đặt `MONGODB_DB=234876_NgoMinhNhat`. Không đưa URI vào repo.
-3. Tạo Static Site khác từ cùng repo, Root Directory `frontend`, Build Command `npm install && npm run build`, Publish Directory `dist`.
-4. Đặt biến build `VITE_API_URL` bằng URL HTTPS backend, không kèm dấu `/` cuối.
-5. Cập nhật `CLIENT_URL` ở backend thành URL HTTPS Static Site rồi deploy lại.
-6. Kiểm tra `/health`, CRUD, tìm kiếm và kết quả từ trình duyệt.
+Repository có `render.yaml` để tạo Web Service API và Static Site frontend cùng lúc:
+
+1. Trong Render Dashboard, tạo **Blueprint Instance** từ `s234876-ai/234876_NgoMinhNhat` và chọn nhánh `main`.
+2. Khi Render yêu cầu biến chưa đồng bộ, nhập `MONGODB_URI` bằng connection string Atlas; đặt `CLIENT_URL` là URL HTTPS của Static Site và `VITE_API_URL` là URL HTTPS của API (không có dấu `/` cuối). Nếu chưa biết URL trước lúc tạo, có thể tạo hai dịch vụ trước rồi điền hai giá trị này trong Environment của từng dịch vụ và deploy lại. URL host không có `https://` cũng được chấp nhận và tự chuẩn hóa.
+3. API dùng Root Directory `backend`, build `npm ci`, start `npm start` và health check `/health`. Frontend dùng Root Directory `frontend`, build `npm ci && npm run build`, publish `dist`.
+4. Đặt `MONGODB_DB=234876_NgoMinhNhat`; URI Atlas phải được giữ trong Environment của Render, không đưa vào repo. Trong Atlas, thêm IP access phù hợp để Render truy cập.
+5. Mở API `/health`, sau đó frontend; thử thêm, tìm kiếm, cập nhật và xóa sách. CORS chỉ cho phép origin khai báo trong `CLIENT_URL`.
+
+Nếu cấu hình thủ công thay vì Blueprint, dùng cùng các Root Directory, build/start commands và biến môi trường nêu trên.
 
 ## Docker Hub
 
@@ -103,6 +108,16 @@ docker compose -f docker-compose.hub.yml push
 ```
 
 Thay `<api-render-url>` bằng URL backend thực tế; image backend và frontend lần lượt được gắn tag `nhat290305/234876-ngominhnhat-backend:latest` và `nhat290305/234876-ngominhnhat-frontend:latest`.
+
+Sau khi Docker Desktop đang chạy, build, chạy thử và đẩy image:
+
+```powershell
+docker compose -f docker-compose.hub.yml build
+docker login -u nhat290305
+docker compose -f docker-compose.hub.yml push
+```
+
+Docker CLI sẽ yêu cầu đăng nhập tương tác; không truyền access token trực tiếp trên dòng lệnh. Image frontend cần được build lại nếu URL API thay đổi.
 
 ## Tài nguyên cần điền khi nộp
 
